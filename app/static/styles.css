@@ -1,0 +1,517 @@
+/* WhatsApp-shaped chat surface.
+
+   The bot's real home is WhatsApp (app/whatsapp.py), so the web widget copies
+   that conversation UI rather than inventing one: same header, wallpaper,
+   tailed bubbles, delivery ticks and composer. Colour tokens below are
+   WhatsApp's own light/dark palettes; everything is a CSS variable so a future
+   Caravista brand pass only touches :root. */
+
+:root {
+  color-scheme: light dark;
+
+  --header-bg: #008069;
+  --header-fg: #ffffff;
+  --header-sub: rgba(255, 255, 255, 0.8);
+
+  --wallpaper: #efeae2;
+  --wallpaper-ink: #0b141a;
+
+  --bubble-in-bg: #ffffff;
+  --bubble-out-bg: #d9fdd3;
+  --bubble-fg: #111b21;
+  --bubble-meta: rgba(17, 27, 33, 0.45);
+  --bubble-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+
+  --divider-bg: #ffffff;
+  --divider-fg: rgba(17, 27, 33, 0.55);
+
+  --composer-bg: #f0f2f5;
+  --composer-field-bg: #ffffff;
+  --composer-icon: #54656f;
+  --composer-fg: #111b21;
+  --composer-placeholder: #8696a0;
+
+  --accent: #00a884;
+  --tick-read: #53bdeb;
+  --error-bg: #fdecea;
+  --error-fg: #8a1c11;
+
+  --app-max-width: 480px;
+  --radius-bubble: 7.5px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --header-bg: #1f2c33;
+    --header-fg: #e9edef;
+    --header-sub: rgba(233, 237, 239, 0.6);
+
+    --wallpaper: #0b141a;
+    --wallpaper-ink: #e9edef;
+
+    --bubble-in-bg: #202c33;
+    --bubble-out-bg: #005c4b;
+    --bubble-fg: #e9edef;
+    --bubble-meta: rgba(233, 237, 239, 0.5);
+    --bubble-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.25);
+
+    --divider-bg: #182229;
+    --divider-fg: rgba(233, 237, 239, 0.6);
+
+    --composer-bg: #202c33;
+    --composer-field-bg: #2a3942;
+    --composer-icon: #8696a0;
+    --composer-fg: #e9edef;
+    --composer-placeholder: #8696a0;
+
+    --error-bg: #3b1f1c;
+    --error-fg: #f5b7b1;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #111b21;
+  color: var(--bubble-fg);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  font-size: 14.2px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- shell ---------- */
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  background: var(--wallpaper);
+  overflow: hidden;
+}
+
+@media (min-width: 720px) {
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: linear-gradient(180deg, #00a884 0 24%, #d9dbd5 24% 100%);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background: linear-gradient(180deg, #00a884 0 24%, #111b21 24% 100%);
+    }
+  }
+
+  .chat {
+    height: min(760px, calc(100dvh - 48px));
+    border-radius: 12px;
+    box-shadow: 0 6px 30px rgba(11, 20, 26, 0.35);
+  }
+}
+
+/* ---------- header ---------- */
+
+.chat__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 6px;
+  background: var(--header-bg);
+  color: var(--header-fg);
+  flex: 0 0 auto;
+}
+
+.chat__back,
+.chat__actions button {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  color: var(--header-fg);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.chat__back:hover,
+.chat__actions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.chat__identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chat__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat__presence {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--header-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+/* Narrow phones: the call buttons are decoration, the conversation is not. */
+@media (max-width: 360px) {
+  .chat__actions button:not(:last-child) {
+    display: none;
+  }
+}
+
+/* ---------- message canvas ---------- */
+
+.chat__canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  background-color: var(--wallpaper);
+  /* WhatsApp's doodle wallpaper, rebuilt as a tiny repeating SVG so the page
+     stays a single self-contained static file (no external image request,
+     which the CSP-restricted preview would block anyway). */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.045' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M14 20h14M14 26h9'/%3E%3Cpath d='M92 16l6 6-6 6-6-6z'/%3E%3Ccircle cx='38' cy='62' r='7'/%3E%3Cpath d='M70 52c4-4 10-4 14 0s4 10 0 14'/%3E%3Cpath d='M20 92c6-8 14-8 20 0'/%3E%3Cpath d='M96 88v12M90 94h12'/%3E%3Cpath d='M58 104h16'/%3E%3Cpath d='M104 46c0 6-5 10-11 10'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat__canvas {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='.04' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M14 20h14M14 26h9'/%3E%3Cpath d='M92 16l6 6-6 6-6-6z'/%3E%3Ccircle cx='38' cy='62' r='7'/%3E%3Cpath d='M70 52c4-4 10-4 14 0s4 10 0 14'/%3E%3Cpath d='M20 92c6-8 14-8 20 0'/%3E%3Cpath d='M96 88v12M90 94h12'/%3E%3Cpath d='M58 104h16'/%3E%3Cpath d='M104 46c0 6-5 10-11 10'/%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
+.chat__messages {
+  margin: 0;
+  padding: 12px 6% 8px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 100%;
+  justify-content: flex-end;
+}
+
+.day-divider {
+  align-self: center;
+  margin: 6px 0 10px;
+}
+
+.day-divider span {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 7.5px;
+  background: var(--divider-bg);
+  color: var(--divider-fg);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  box-shadow: var(--bubble-shadow);
+}
+
+.row {
+  display: flex;
+  max-width: 100%;
+}
+
+.row--in {
+  justify-content: flex-start;
+}
+
+.row--out {
+  justify-content: flex-end;
+}
+
+/* Consecutive messages from the same side lose the tail and tighten up, the
+   way a real thread groups them. */
+.row + .row--in .bubble--in:not(.bubble--tail),
+.row + .row--out .bubble--out:not(.bubble--tail) {
+  border-radius: var(--radius-bubble);
+}
+
+.bubble {
+  position: relative;
+  max-width: 82%;
+  padding: 6px 7px 8px 9px;
+  border-radius: var(--radius-bubble);
+  background: var(--bubble-in-bg);
+  color: var(--bubble-fg);
+  box-shadow: var(--bubble-shadow);
+  margin: 1px 0;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.bubble--out {
+  background: var(--bubble-out-bg);
+}
+
+/* The tail: a small triangle tucked under the first bubble of a run. */
+.bubble--tail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 13px;
+  background: inherit;
+}
+
+.bubble--in.bubble--tail {
+  border-top-left-radius: 0;
+}
+
+.bubble--in.bubble--tail::before {
+  left: -8px;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+
+.bubble--out.bubble--tail {
+  border-top-right-radius: 0;
+}
+
+.bubble--out.bubble--tail::before {
+  right: -8px;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.bubble__text {
+  display: block;
+  white-space: pre-wrap;
+  font-size: 14.2px;
+  /* Reserve the metadata's width on the last line, as WhatsApp does, so the
+     timestamp never overlaps the text. */
+  padding-right: 54px;
+}
+
+.bubble--out .bubble__text {
+  padding-right: 68px;
+}
+
+.bubble__text strong {
+  font-weight: 600;
+}
+
+.bubble__text em {
+  font-style: italic;
+}
+
+.bubble__disclaimer {
+  display: block;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid var(--bubble-meta);
+  font-size: 11.8px;
+  color: var(--bubble-meta);
+  padding-right: 54px;
+}
+
+.bubble__meta {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--bubble-meta);
+  line-height: 1;
+}
+
+.bubble__ticks {
+  display: inline-flex;
+  color: var(--bubble-meta);
+}
+
+.bubble__ticks--read {
+  color: var(--tick-read);
+}
+
+/* Typing indicator — three dots in an incoming bubble. */
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bubble-meta);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing span {
+    animation: none;
+  }
+}
+
+.row--error {
+  justify-content: center;
+}
+
+.row--error .bubble {
+  background: var(--error-bg);
+  color: var(--error-fg);
+  text-align: center;
+  font-size: 12.5px;
+  max-width: 90%;
+}
+
+.row--error .bubble__text {
+  padding-right: 0;
+}
+
+/* ---------- composer ---------- */
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+  background: var(--composer-bg);
+  flex: 0 0 auto;
+}
+
+.composer__field {
+  display: flex;
+  align-items: flex-end;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--composer-field-bg);
+  border-radius: 8px;
+  padding: 3px 6px;
+}
+
+.composer__icon {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  color: var(--composer-icon);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+#message {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 100px;
+  padding: 9px 4px;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--composer-fg);
+  font: inherit;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+#message::placeholder {
+  color: var(--composer-placeholder);
+}
+
+.composer__send {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.composer__send:active {
+  transform: scale(0.94);
+}
+
+.composer__send:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

@@ -1,0 +1,17 @@
+# Runtime
+flask==3.1.0
+flask-limiter==3.8.0
+gunicorn==23.0.0
+qdrant-client==1.12.1
+openai==1.58.1
+python-dotenv==1.0.1
+httpx==0.28.1
+
+# Ingestion (app/ingest.py) — parses the knowledge-base source documents
+pypdf==5.1.0
+python-docx==1.1.2
+
+# Dev / CI (typecheck, test — see package.json)
+ruff==0.8.4
+mypy==1.13.0
+pytest==8.3.4

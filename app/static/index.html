@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#008069" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f2c33" media="(prefers-color-scheme: dark)" />
+    <title>Caravista — assistent virtual</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <!--
+      Deliberately shaped like a WhatsApp conversation: this same bot moves to
+      the WhatsApp Cloud API channel later (app/whatsapp.py, README_WHATSAPP.md),
+      so the web widget is the rehearsal of that surface, not a separate design.
+    -->
+    <main class="chat" role="main">
+      <header class="chat__header">
+        <button class="chat__back" type="button" aria-label="Enrere">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 4l1.4 1.4L7.8 11H20v2H7.8l5.6 5.6L12 20l-8-8 8-8z"
+            />
+          </svg>
+        </button>
+
+        <span class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 212 212" width="40" height="40">
+            <circle cx="106" cy="106" r="106" fill="#6a7175" />
+            <path
+              fill="#d9dee0"
+              d="M106.3 115.6c19.8 0 35.8-16 35.8-35.8s-16-35.8-35.8-35.8-35.8 16-35.8 35.8 16 35.8 35.8 35.8zm0 17.9c-23.9 0-71.6 12-71.6 35.8v17.9h143.2v-17.9c0-23.8-47.7-35.8-71.6-35.8z"
+            />
+          </svg>
+        </span>
+
+        <div class="chat__identity">
+          <h1 class="chat__name">Caravista</h1>
+          <p class="chat__presence" id="presence">en línia</p>
+        </div>
+
+        <div class="chat__actions">
+          <button type="button" aria-label="Videotrucada">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path fill="currentColor" d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z" />
+            </svg>
+          </button>
+          <button type="button" aria-label="Trucada">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 013 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.3 2.2z" />
+            </svg>
+          </button>
+          <button type="button" aria-label="Més opcions">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="chat__canvas">
+        <ol id="messages" class="chat__messages" aria-live="polite" aria-label="Conversa">
+          <li class="day-divider"><span>AVUI</span></li>
+          <li class="row row--in">
+            <!-- Single line: .bubble__text is pre-wrap, so source newlines would render. -->
+            <div class="bubble bubble--in"><span class="bubble__text">Hola! Sóc l'assistent virtual de Caravista. Pregunta'm el que vulguis sobre els nostres serveis, horaris o com contactar-nos.</span><span class="bubble__meta"><time>--:--</time></span></div>
+          </li>
+        </ol>
+      </div>
+
+      <form id="chat-form" class="composer" autocomplete="off">
+        <div class="composer__field">
+          <button class="composer__icon" type="button" aria-label="Emoji" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path fill="currentColor" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM12 17.5c-2.3 0-4.3-1.4-5.1-3.5h10.2c-.8 2.1-2.8 3.5-5.1 3.5z" />
+            </svg>
+          </button>
+          <label class="visually-hidden" for="message">Escriu un missatge</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="1"
+            placeholder="Escriu un missatge"
+            enterkeyhint="send"
+            required
+          ></textarea>
+          <button class="composer__icon" type="button" aria-label="Adjunta" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path fill="currentColor" d="M16.5 6v11.5a4.5 4.5 0 11-9 0V5a3 3 0 116 0v11.5a1.5 1.5 0 11-3 0V6H9v10.5a3 3 0 106 0V5a4.5 4.5 0 10-9 0v12.5a6 6 0 1012 0V6h-1.5z" />
+            </svg>
+          </button>
+        </div>
+        <button id="send" class="composer__send" type="submit" aria-label="Envia">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+        </button>
+      </form>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

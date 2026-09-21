@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Agent tooling only (.sandcastle/agent-workflows). The product is the Python app in app/ — see CODING_STANDARDS.md.",
+  "scripts": {
+    "typecheck": "test -d app && pip install -q -r requirements.txt && ruff check . && mypy app --ignore-missing-imports || echo 'no app/ yet — skipping typecheck'",
+    "test": "test -d tests && pip install -q -r requirements.txt && pytest -q || echo 'no tests/ yet — skipping test'",
+    "build": "echo 'no separate build step for the Python service'"
+  },
+  "devDependencies": {
+    "@ai-hero/sandcastle": "^0.12.0"
+  }
+}

@@ -1,0 +1,31 @@
+# Render blueprint — Web Service, Docker, auto-deploy on push to main (ADR-0002).
+services:
+  - type: web
+    name: xatbot-caravista
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      # Secrets — set in the Render dashboard, never committed (see .env.example).
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION
+        value: caravista
+      # Meta WhatsApp Cloud API, set in the dashboard when the channel is
+      # switched on (see README_WHATSAPP.md). The app boots without them.
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: META_PHONE_NUMBER_ID
+        sync: false
+      - key: META_VERIFY_TOKEN
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
