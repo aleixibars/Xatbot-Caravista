@@ -1,0 +1,31 @@
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /health
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "HEALTH_URL repo variable not configured; skipping keep-alive ping."
+            exit 0
+          fi
+          body="$(curl --fail --silent --show-error --max-time 30 --retry 2 "$HEALTH_URL")"
+          echo "$body"
+          case "$body" in
+            *ok*) ;;
+            *)
+              echo "Response body does not contain \"ok\"." >&2
+              exit 1
+              ;;
+          esac
