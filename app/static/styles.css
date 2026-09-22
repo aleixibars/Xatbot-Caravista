@@ -33,6 +33,7 @@
 
   --accent: #00a884;
   --tick-read: #53bdeb;
+  --bubble-link: #027eb5;
   --error-bg: #fdecea;
   --error-fg: #8a1c11;
 
@@ -63,6 +64,8 @@
     --composer-icon: #8696a0;
     --composer-fg: #e9edef;
     --composer-placeholder: #8696a0;
+
+    --bubble-link: #53bdeb;
 
     --error-bg: #3b1f1c;
     --error-fg: #f5b7b1;
@@ -345,6 +348,13 @@ body {
 
 .bubble__text em {
   font-style: italic;
+}
+
+/* Links the bot emits (URLs, mailto:, tel:) — WhatsApp's in-bubble link blue. */
+.bubble__text a {
+  color: var(--bubble-link);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
 }
 
 .bubble__disclaimer {
