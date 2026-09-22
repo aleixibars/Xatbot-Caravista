@@ -54,10 +54,58 @@
   // phone channel: *bold*, _italic_, ~strikethrough~. Escaped first, so the
   // markup is the only HTML that can ever reach the DOM.
   function formatMarkup(text) {
-    return escapeHtml(text)
-      .replace(/(^|\s)\*(\S([^*]*\S)?)\*(?=\s|$|[.,!?;:])/g, "$1<strong>$2</strong>")
-      .replace(/(^|\s)_(\S([^_]*\S)?)_(?=\s|$|[.,!?;:])/g, "$1<em>$2</em>")
-      .replace(/(^|\s)~(\S([^~]*\S)?)~(?=\s|$|[.,!?;:])/g, "$1<s>$2</s>");
+    return linkify(
+      escapeHtml(text)
+        .replace(/(^|\s)\*(\S([^*]*\S)?)\*(?=\s|$|[.,!?;:])/g, "$1<strong>$2</strong>")
+        .replace(/(^|\s)_(\S([^_]*\S)?)_(?=\s|$|[.,!?;:])/g, "$1<em>$2</em>")
+        .replace(/(^|\s)~(\S([^~]*\S)?)~(?=\s|$|[.,!?;:])/g, "$1<s>$2</s>")
+    );
+  }
+
+  // One alternation so each stretch of text is claimed by at most one link.
+  // Runs on escaped text: "&" only appears as "&amp;" (valid in an href, the
+  // browser decodes it), and "<"/">" only occur in the tags formatMarkup just
+  // inserted, so excluding them stops a URL at </strong> and friends.
+  var LINK_PATTERN =
+    /https?:\/\/(?:[^\s<>&]|&amp;)+|www\.(?:[^\s<>&]|&amp;)+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|\+?\d[\d ().-]{6,}\d/g;
+
+  function linkify(html) {
+    return html.replace(LINK_PATTERN, function (match) {
+      // Sentence punctuation after a URL/email belongs to the sentence, and a
+      // closing paren only to the URL if the URL itself opened one.
+      var trail = "";
+      var m = match.match(/[.,!?;:]+$/);
+      if (m) {
+        trail = m[0];
+        match = match.slice(0, -trail.length);
+      }
+      if (match.slice(-1) === ")" && match.indexOf("(") === -1) {
+        trail = ")" + trail;
+        match = match.slice(0, -1);
+      }
+
+      var href;
+      var external = false;
+      if (/^https?:\/\//.test(match)) {
+        href = match;
+        external = true;
+      } else if (match.slice(0, 4) === "www.") {
+        href = "https://" + match;
+        external = true;
+      } else if (match.indexOf("@") !== -1) {
+        href = "mailto:" + match;
+      } else {
+        // Phone candidate: anything digit-shaped matched; only treat it as a
+        // number if it has enough digits (9 = a Spanish number without prefix),
+        // so dates, amounts and ids stay plain text.
+        var digits = match.replace(/\D/g, "");
+        if (digits.length < 9) return match + trail;
+        href = "tel:" + (match.charAt(0) === "+" ? "+" : "") + digits;
+      }
+
+      var attrs = external ? ' target="_blank" rel="noopener noreferrer"' : "";
+      return '<a href="' + href + '"' + attrs + ">" + match + "</a>" + trail;
+    });
   }
 
   function isLastRow(kind) {
