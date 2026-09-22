@@ -20,10 +20,13 @@ jobs:
             echo "HEALTH_URL repo variable not configured; skipping keep-alive ping."
             exit 0
           fi
-          body="$(curl --fail --silent --show-error --max-time 30 --retry 2 "$HEALTH_URL")"
+          # --max-time 60 + --retry-all-errors: the first ping after a deploy (or after the
+          # schedule was re-enabled) hits a spun-down service, and Render's free-tier cold
+          # start can exceed 30s or drop the connection outright.
+          body="$(curl --fail --silent --show-error --max-time 60 --retry 3 --retry-all-errors "$HEALTH_URL")"
           echo "$body"
           case "$body" in
-            *ok*) ;;
+            *'"ok"'*) ;;
             *)
               echo "Response body does not contain \"ok\"." >&2
               exit 1
