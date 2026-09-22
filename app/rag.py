@@ -28,8 +28,8 @@ SEARCH_MIN_SCORE: float = 0.25
 
 DISCLAIMER: str = (
     "\n\n---\n"
-    "Això és informació general, no una resposta personalitzada al teu cas. "
-    "Confirma-ho amb el nostre equip abans de prendre cap decisió."
+    "Els preus, els plats i la disponibilitat poden canviar. Confirma-ho amb el "
+    "restaurant al 600 764 517 abans de comptar-hi."
 )
 
 # Shown (with the disclaimer) when no knowledge-base fragment matches.
@@ -39,18 +39,21 @@ NO_CONTEXT_MESSAGE: str = (
 )
 
 SYSTEM_PROMPT: str = (
-    "Ets l'assistent virtual de Caravista. Respon SEMPRE en el mateix idioma "
-    "que la pregunta de l'usuari (català, castellà, anglès...). Ajudes els "
-    "clients i visitants a resoldre dubtes sobre l'empresa i els seus serveis "
-    "(què fem, per a qui, com contactar-nos, horaris, equip). Respon NOMÉS amb "
-    "la informació del CONTEXT proporcionat. Si la resposta no és al CONTEXT, "
-    "digues que no ho saps i ofereix contactar amb l'equip. No inventis mai "
-    "dades de contacte, preus, terminis ni condicions. Mantén un to proper i "
-    "informatiu i no presentis mai la resposta com un compromís contractual "
-    "definitiu. NO escriguis mai cap frase final de descàrrec de "
-    "responsabilitat, avís o matís del tipus «això és informació general, no "
-    "una resposta personalitzada» — l'aplicació ja afegeix l'avís oficial "
-    "després de la teva resposta, i qualsevol frase així teva seria redundant."
+    "Ets l'assistent virtual de Caravista, un restaurant-peixateria de Lleida "
+    "especialitzat en marisc, peix salvatge, arrossos i fideuàs. Respon SEMPRE "
+    "en el mateix idioma que la pregunta de l'usuari (català, castellà, "
+    "anglès...). Ajudes els clients a resoldre dubtes sobre el restaurant i els "
+    "seus serveis: la carta i els menús, els horaris, com reservar taula, el "
+    "menjar per emportar i a domicili, els grups i el càtering. Respon NOMÉS "
+    "amb la informació del CONTEXT proporcionat. Si la resposta no és al "
+    "CONTEXT, digues que no ho saps i ofereix trucar o escriure al restaurant. "
+    "No inventis mai plats, preus, horaris, dates disponibles ni dades de "
+    "contacte, i no confirmis mai una reserva tu mateix: per reservar, deriva "
+    "sempre a la reserva online, al telèfon o al WhatsApp. Sigues proper i breu. "
+    "NO escriguis mai cap frase final de descàrrec de responsabilitat, avís o "
+    "matís del tipus «els preus poden canviar, confirma-ho amb el restaurant» "
+    "— l'aplicació ja afegeix l'avís oficial després de la teva resposta, i "
+    "qualsevol frase així teva seria redundant."
 )
 
 # Labels whose answers could plausibly resemble guidance/advice — only these
@@ -76,14 +79,22 @@ _ROUTER_LABELS: tuple[str, ...] = (
 ROUTER_PROMPT: str = (
     "Classifica la pregunta de l'usuari segons quina font és més probable que "
     "la respongui. Respon EXACTAMENT amb una d'aquestes paraules i res més:\n"
-    "- company_info: dades de contacte, adreça, telèfon, horaris, xarxes "
-    "socials, web i dades generals de l'empresa\n"
-    "- team_members: qui hi treballa, persones, departaments, preguntes sobre "
-    "una persona concreta o buscar algú pel nom o pel càrrec/funció\n"
-    "- services: quins serveis o productes ofereix l'empresa\n"
-    "- routing_rules: amb quin departament o persona cal parlar per un tema\n"
-    "- faq: preguntes freqüents sobre el funcionament de l'empresa\n"
-    "- rag: qualsevol altra pregunta sobre Caravista i els seus serveis"
+    "- company_info: on són, adreça, com arribar-hi, aparcament, telèfon, "
+    "WhatsApp, email, web, horaris d'obertura i de tancament, quin dia tanquen, "
+    "capacitat del local, sala privada, xarxes socials, la cafeteria Voravista\n"
+    "- team_members: qui hi treballa, qui és el xef, Mateu Blanch, l'equip\n"
+    "- services: què ofereixen en general (restaurant, reserves, menús, grups, "
+    "menjar per emportar i a domicili, càtering, xec regal)\n"
+    "- routing_rules: què ha de fer el client per a un tràmit concret — "
+    "reservar, anul·lar o canviar una reserva, demanar un pressupost per a un "
+    "grup, encarregar càtering, avisar d'una al·lèrgia, demanar una factura o "
+    "una devolució, enviar el currículum\n"
+    "- faq: preguntes freqüents sobre el funcionament del restaurant i els "
+    "preus dels menús\n"
+    "- rag: plats concrets de la carta i el seu preu, ingredients, el celler i "
+    "els vins, les postres, els cafès i licors, la història del restaurant, la "
+    "trajectòria i els premis del xef, i qualsevol altra pregunta sobre "
+    "Caravista"
 )
 
 
@@ -212,7 +223,16 @@ def route(question: str) -> str:
 # providing the real facts removes the opportunity to invent them, which is
 # more robust than instructing the model not to. Keys absent from the seed are
 # simply absent from the block (see app/db_seed.py).
-_CONTACT_KEYS: tuple[str, ...] = ("phone_main", "whatsapp", "hours_mon_thu", "hours_fri")
+_CONTACT_KEYS: tuple[str, ...] = (
+    "phone_main",
+    "whatsapp",
+    "email",
+    "address",
+    "booking_url",
+    "hours_lunch",
+    "hours_dinner",
+    "closed_day",
+)
 
 
 def _contact_context() -> str:

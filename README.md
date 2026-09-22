@@ -9,9 +9,10 @@ client differs.
 
 ## Status
 
-PoC, **not yet fed**: `app/db_seed.py` and `knowledge/` are empty placeholders, so the bot answers
-"no information found" until Caravista's content is supplied. Everything else — retrieval, router,
-web chat, WhatsApp webhook, deploy — is in place.
+PoC, deployed and fed. The knowledge base was loaded on 2026-09-22 from
+caravistarestaurant.com: structured facts in `app/db_seed.py`, narrative content in
+`knowledge/caravista.md` (ingested into the Qdrant collection `caravista`). The WhatsApp channel
+is the one part still switched off — the webhook exists, its `META_*` credentials do not.
 
 Built by an autonomous agent pipeline — see `docs/agents/` and `.github/workflows/agent-*.yml`.
 Work is tracked as GitHub issues; don't expect a hand-written implementation history.

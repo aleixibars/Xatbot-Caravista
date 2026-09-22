@@ -16,15 +16,24 @@ same deploy shape), re-pointed at a different client.
 
 ## Status of the knowledge base
 
-**Empty, on purpose.** The client's content has not been supplied yet:
+Fed, as of 2026-09-22, from the material on caravistarestaurant.com (site, menu and wine PDFs,
+online shop, terms of sale, news and the booking flow):
 
-- `app/db_seed.py` — every seed constant is an empty placeholder.
-- `knowledge/` — holds no source documents.
+- `app/db_seed.py` — the structured facts: contact and hours, the team, the service list, the
+  routing table, the FAQ and the public links.
+- `knowledge/caravista.md` — the narrative half, ingested into the Qdrant collection
+  `caravista`: the carta dish by dish with prices, the menus in full, the dessert and wine
+  lists, the takeaway and delivery conditions, the catering offer, the chef's career and awards,
+  the sister café Voravista, and the news.
 
-Until they are filled in, the router's SQL lookups find nothing and every question falls through
-to the vector search, which finds nothing either, so the bot answers with `NO_CONTEXT_MESSAGE`.
-That is the intended behaviour of an unfed bot, not a bug. See the "Caravista knowledge base"
-issues.
+The split follows ADR-0003 and is deliberate: a fact that must be exact (a phone number, an
+opening time, a menu's headline price) is answered from SQLite, and the long tail of dish detail
+is answered from retrieved fragments. No fact lives on both sides, so the two halves cannot
+disagree inside one answer.
+
+Prices and dishes change. The knowledge base carries its extraction date, and `DISCLAIMER` in
+`app/rag.py` tells the visitor to confirm with the restaurant — re-run the ingestion after any
+carta change (`python -m app.ingest knowledge/`).
 
 ## Glossary
 
@@ -65,9 +74,15 @@ issues.
 
 ## Client
 
-**Caravista** — client details pending. When the material arrives, the structured facts (contact,
-team, services, routing table, FAQ) go into `app/db_seed.py` for SQLite and the narrative
-sections into `knowledge/` for Qdrant ingestion. See ADR-0003 for why the split exists.
+**Caravista Restaurant** (also "Caravista by Mateu Blanch") — a restaurant and fishmonger's in
+the Zona Alta of Lleida (Av. de Balmes, 38), specialising in shellfish, wild fish, rice dishes
+and fideuà, with produce from the Horta de Lleida. Chef and co-owner: Mateu Blanch Olaya. Lunch
+Tuesday to Sunday, dinner Friday and Saturday only, closed Mondays. Bookings by phone/WhatsApp
+(600 764 517) or at caravistareservas.com.
+
+The bot answers visitors' questions about the restaurant — carta and menus, hours, how to book,
+takeaway and delivery, groups and catering — and never books a table itself: it routes the
+visitor to the booking page, the phone or WhatsApp.
 
 ## Non-goals (for this PoC)
 

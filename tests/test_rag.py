@@ -287,12 +287,7 @@ def test_answer_routing_rules_context_carries_real_phone(monkeypatch):
     # A fixture stand-in for the client's company_info rows: the real seed
     # (app/db_seed.py) is client data and may be empty, and what is under test
     # here is that whatever contact facts exist reach the CONTEXT.
-    contact = {
-        "phone_main": "900 000 000",
-        "whatsapp": "+34 600 000 000",
-        "hours_mon_thu": "9:00-18:00",
-        "hours_fri": "9:00-15:00",
-    }
+    contact = {key: f"valor-{key}" for key in rag._CONTACT_KEYS}
 
     monkeypatch.setattr(rag, "route", lambda q: "routing_rules")
     monkeypatch.setattr(
@@ -321,11 +316,9 @@ def test_answer_routing_rules_context_carries_real_phone(monkeypatch):
     search.assert_not_called()
     prompt = chat_client.chat.completions.create.call_args.kwargs["messages"][-1]["content"]
     assert "Àrea Herències: Parlar amb l'àrea jurídica." in prompt
-    # The real number is present in the CONTEXT — not merely "no wrong number".
-    assert contact["phone_main"] in prompt
-    assert contact["whatsapp"] in prompt
-    assert contact["hours_mon_thu"] in prompt
-    assert contact["hours_fri"] in prompt
+    # The real values are present in the CONTEXT — not merely "no wrong number".
+    for key in rag._CONTACT_KEYS:
+        assert contact[key] in prompt, key
 
 
 def test_answer_survives_contact_lookup_failure(monkeypatch, capsys):
