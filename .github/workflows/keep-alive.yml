@@ -1,0 +1,34 @@
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /health
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "HEALTH_URL repo variable not configured; skipping keep-alive ping."
+            exit 0
+          fi
+          # --max-time 60 + --retry-all-errors: the first ping after a deploy (or after the
+          # schedule was re-enabled) hits a spun-down service, and Render's free-tier cold
+          # start can exceed 30s or drop the connection outright.
+          body="$(curl --fail --silent --show-error --max-time 60 --retry 3 --retry-all-errors "$HEALTH_URL")"
+          echo "$body"
+          case "$body" in
+            *'"ok"'*) ;;
+            *)
+              echo "Response body does not contain \"ok\"." >&2
+              exit 1
+              ;;
+          esac

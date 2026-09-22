@@ -42,6 +42,11 @@ python -m app.ingest knowledge/
 - `package.json` — **not** the product; only runs `.sandcastle/agent-workflows/` (the agent
   pipeline's own tooling, which needs Node/tsx).
 - `.github/workflows/agent-*.yml` — the implement → review → merge → wave-advance pipeline.
+- `.github/workflows/keep-alive.yml` — pings `/health` every 10 minutes so the free Render
+  service does not spin down. Set the repo variable `HEALTH_URL` to
+  `https://<service>.onrender.com/health` under Settings → Secrets and variables → Actions →
+  Variables. GitHub disables scheduled workflows after 60 days without repository activity, so a
+  silent stop means the schedule needs re-enabling under Actions.
 - `render.yaml` — deploy blueprint (Render Web Service, Docker, auto-deploy on `main`).
 
 ## Checks
