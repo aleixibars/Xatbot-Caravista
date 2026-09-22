@@ -70,7 +70,7 @@
     /https?:\/\/(?:[^\s<>&]|&amp;)+|www\.(?:[^\s<>&]|&amp;)+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|\+?\d[\d ().-]{6,}\d/g;
 
   function linkify(html) {
-    return html.replace(LINK_PATTERN, function (match) {
+    return html.replace(LINK_PATTERN, function (match, offset) {
       // Sentence punctuation after a URL/email belongs to the sentence, and a
       // closing paren only to the URL if the URL itself opened one.
       var trail = "";
@@ -95,11 +95,20 @@
       } else if (match.indexOf("@") !== -1) {
         href = "mailto:" + match;
       } else {
-        // Phone candidate: anything digit-shaped matched; only treat it as a
-        // number if it has enough digits (9 = a Spanish number without prefix),
-        // so dates, amounts and ids stay plain text.
+        // Phone candidate: anything digit-shaped matched; only link it when it
+        // plausibly is one: 9 digits (Spanish, no prefix) up to 15 (E.164 max),
+        // not glued to a preceding letter/digit (IBANs, reference ids), and no
+        // standalone 4-digit group — years, dates and IBAN chunks have those,
+        // Spanish numbers group as 3-3-3 or 2-3-2-2.
         var digits = match.replace(/\D/g, "");
-        if (digits.length < 9) return match + trail;
+        if (
+          digits.length < 9 ||
+          digits.length > 15 ||
+          /\w/.test(html.charAt(offset - 1)) ||
+          /(^|\D)\d{4}(\D|$)/.test(match)
+        ) {
+          return match + trail;
+        }
         href = "tel:" + (match.charAt(0) === "+" ? "+" : "") + digits;
       }
 
