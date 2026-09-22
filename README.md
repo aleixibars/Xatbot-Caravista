@@ -56,4 +56,9 @@ python -m app.ingest knowledge/
 ruff check .
 mypy app --ignore-missing-imports
 pytest -q
+node tests/static/check-markup.mjs   # the chat page's text rendering
 ```
+
+`tests/static/check-markup.mjs` covers the one place where an LLM's output reaches `innerHTML`:
+the bold/italic/link rendering in `app/static/app.js`. Python tests cannot see it, and a broken
+regex there takes the whole page down silently.

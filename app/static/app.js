@@ -50,12 +50,21 @@
       .replace(/"/g, "&quot;");
   }
 
-  // WhatsApp's own inline markup, which app/whatsapp.py already emits for the
-  // phone channel: *bold*, _italic_, ~strikethrough~. Escaped first, so the
-  // markup is the only HTML that can ever reach the DOM.
+  // WhatsApp's own inline markup: *bold*, _italic_, ~strikethrough~. Escaped
+  // first, so the markup is the only HTML that can ever reach the DOM.
+  //
+  // Standard Markdown **bold** is handled first and deliberately: the chat
+  // model writes standard Markdown, and the WhatsApp channel converts it with
+  // whatsapp._to_whatsapp_markdown() before sending. The web channel has no
+  // such conversion step, so without this rule a live answer like
+  // "**23,90 EUR per persona**" renders with its asterisks showing. The
+  // double-asterisk rule needs no surrounding-whitespace anchor - "**" is
+  // unambiguous - and running it first stops the single-asterisk rule from
+  // claiming one half of a "**...**" span.
   function formatMarkup(text) {
     return linkify(
       escapeHtml(text)
+        .replace(/\*\*([^*\n]+?)\*\*/g, "<strong>$1</strong>")
         .replace(/(^|\s)\*(\S([^*]*\S)?)\*(?=\s|$|[.,!?;:])/g, "$1<strong>$2</strong>")
         .replace(/(^|\s)_(\S([^_]*\S)?)_(?=\s|$|[.,!?;:])/g, "$1<em>$2</em>")
         .replace(/(^|\s)~(\S([^~]*\S)?)~(?=\s|$|[.,!?;:])/g, "$1<s>$2</s>")
