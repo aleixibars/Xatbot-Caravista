@@ -61,7 +61,7 @@ issues.
 | Vector DB hosting | Qdrant Cloud, free tier — collection `caravista` on the existing cluster | ADR-0002 |
 | Repo layout | Python app at root (`app/`); `package.json` is agent tooling only | ADR-0001 |
 | Retrieval | Hybrid: SQLite for structured facts, Qdrant RAG for narrative — a router picks per question | ADR-0003 |
-| Frontend | WhatsApp-shaped web chat, no framework, no build step | ADR-0002 |
+| Frontend | WhatsApp-shaped web chat, no framework, no build step | ADR-0004 |
 
 ## Client
 
